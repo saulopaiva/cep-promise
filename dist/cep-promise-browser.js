@@ -26,6 +26,55 @@
     }
   }
 
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+      keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  function _objectSpread2(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+
+      if (i % 2) {
+        ownKeys(Object(source), true).forEach(function (key) {
+          _defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        ownKeys(Object(source)).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
+      }
+    }
+
+    return target;
+  }
+
   function _inherits(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function");
@@ -360,7 +409,8 @@
         'Content-Type': 'text/xml;charset=UTF-8',
         'cache-control': 'no-cache'
       },
-      timeout: configurations.timeout || 30000
+      timeout: configurations.timeout || 30000,
+      signal: configurations === null || configurations === void 0 ? void 0 : configurations.signal
     };
     return fetch(url, options).then(analyzeAndParseResponse)["catch"](throwApplicationError);
   }
@@ -442,7 +492,8 @@
       headers: {
         'content-type': 'application/json;charset=utf-8'
       },
-      timeout: configurations.timeout || 30000
+      timeout: configurations.timeout || 30000,
+      signal: configurations === null || configurations === void 0 ? void 0 : configurations.signal
     };
 
     if (typeof window == 'undefined') {
@@ -500,7 +551,8 @@
       headers: {
         'content-type': 'application/json;charset=utf-8'
       },
-      timeout: configurations.timeout || 30000
+      timeout: configurations.timeout || 30000,
+      signal: configurations === null || configurations === void 0 ? void 0 : configurations.signal
     };
     return fetch(url, options).then(analyzeAndParseResponse$2).then(checkForWideNetError).then(extractCepValuesFromResponse$1)["catch"](throwApplicationError$2);
   }
@@ -553,7 +605,8 @@
       headers: {
         'content-type': 'application/json;charset=utf-8'
       },
-      timeout: configurations.timeout || 30000
+      timeout: configurations.timeout || 30000,
+      signal: configurations === null || configurations === void 0 ? void 0 : configurations.signal
     };
     return fetch(url, options).then(parseResponse).then(extractCepValuesFromResponse$2)["catch"](throwApplicationError$3);
   }
@@ -714,15 +767,29 @@
 
   function fetchCepFromServices(cepWithLeftPad, configurations) {
     var providersServices = getAvailableServices();
+    var hasAbortSupport = typeof AbortController === 'function';
+    var abortController = null;
+
+    if (hasAbortSupport) {
+      abortController = new AbortController();
+    }
 
     if (configurations.providers.length === 0) {
       return Promise$1.any(Object.values(providersServices).map(function (provider) {
-        return provider(cepWithLeftPad, configurations);
+        var _abortController;
+
+        return provider(cepWithLeftPad, _objectSpread2(_objectSpread2({}, configurations), {}, {
+          signal: (_abortController = abortController) === null || _abortController === void 0 ? void 0 : _abortController.signal
+        }));
       }));
     }
 
     return Promise$1.any(configurations.providers.map(function (provider) {
-      return providersServices[provider](cepWithLeftPad, configurations);
+      var _abortController2;
+
+      return providersServices[provider](cepWithLeftPad, _objectSpread2(_objectSpread2({}, configurations), {}, {
+        signal: (_abortController2 = abortController) === null || _abortController2 === void 0 ? void 0 : _abortController2.signal
+      }));
     }));
   }
 
