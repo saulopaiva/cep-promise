@@ -12,7 +12,8 @@ export default function fetchCorreiosService (cepWithLeftPad, configurations) {
       'Content-Type': 'text/xml;charset=UTF-8',
       'cache-control': 'no-cache'
     },
-    timeout: configurations.timeout || 30000
+    timeout: configurations.timeout || 30000,
+    signal: configurations?.signal
   }
 
   return fetch(url, options)

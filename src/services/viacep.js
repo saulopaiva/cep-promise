@@ -11,7 +11,8 @@ export default function fetchViaCepService (cepWithLeftPad, configurations) {
     headers: {
       'content-type': 'application/json;charset=utf-8'
     },
-    timeout: configurations.timeout || 30000
+    timeout: configurations.timeout || 30000,
+    signal: configurations?.signal
   }
 
   if (typeof window == 'undefined') {

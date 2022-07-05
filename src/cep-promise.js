@@ -106,16 +106,30 @@ function validateInputLength (cepWithLeftPad) {
 
 function fetchCepFromServices (cepWithLeftPad, configurations) {
   const providersServices = getAvailableServices()
+  const hasAbortSupport = typeof AbortController === 'function'
+  let abortController = null
+
+  if (hasAbortSupport) {
+    abortController = new AbortController()
+  }
 
   if (configurations.providers.length === 0) {
     return Promise.any(
-      Object.values(providersServices).map(provider => provider(cepWithLeftPad, configurations))
+      Object.values(providersServices).map(provider => {
+        return provider(cepWithLeftPad, {
+          ...configurations,
+          signal: abortController?.signal
+        })
+      })
     )
   }
 
   return Promise.any(
     configurations.providers.map(provider => {
-      return providersServices[provider](cepWithLeftPad, configurations)
+      return providersServices[provider](cepWithLeftPad, {
+        ...configurations,
+        signal: abortController?.signal
+      })
     })
   )
 }
